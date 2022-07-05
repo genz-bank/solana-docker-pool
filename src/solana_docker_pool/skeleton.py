@@ -4,7 +4,7 @@ console script. To run this script uncomment the following lines in the
 ``[options.entry_points]`` section in ``setup.cfg``::
 
     console_scripts =
-         fibonacci = solana_docker_pool.skeleton:run
+         genz-solana-pool = solana_docker_pool.skeleton:run
 
 Then run ``pip install .`` (or ``pip install -e .`` for editable mode)
 which will install the command ``fibonacci`` inside your current environment.
@@ -25,6 +25,10 @@ import logging
 import sys
 
 from solana_docker_pool import __version__
+import solana_docker_pool.config_cli as config_cli
+import solana_docker_pool.relay_cli as relay_cli
+import solana_docker_pool.staking_cli as staking_cli
+import solana_docker_pool.wallet_cli as wallet_cli
 
 __author__ = "maso"
 __copyright__ = "maso"
@@ -33,27 +37,7 @@ __license__ = "MIT"
 _logger = logging.getLogger(__name__)
 
 
-# ---- Python API ----
-# The functions defined in this section can be imported by users in their
-# Python scripts/interactive interpreter, e.g. via
-# `from solana_docker_pool.skeleton import fib`,
-# when using this Python module as a library.
 
-
-def fib(n):
-    """Fibonacci example function
-
-    Args:
-      n (int): integer
-
-    Returns:
-      int: n-th Fibonacci number
-    """
-    assert n > 0
-    a, b = 1, 1
-    for _i in range(n - 1):
-        a, b = b, a + b
-    return a
 
 
 # ---- CLI ----
@@ -72,13 +56,19 @@ def parse_args(args):
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = argparse.ArgumentParser(description="Just a Fibonacci demonstration")
+    parser = argparse.ArgumentParser(
+        prog="GenZ Bank CSC Pool Manager",
+        usage="genz-csc-pool",
+        description="GenZ Bank CSC Pool Manager and utilities",
+        add_help=True,
+        allow_abbrev=True,
+        exit_on_error=True
+    )
     parser.add_argument(
         "--version",
         action="version",
-        version="solana-docker-pool {ver}".format(ver=__version__),
+        version="csc-docker-pool {ver}".format(ver=__version__),
     )
-    parser.add_argument(dest="n", help="n-th Fibonacci number", type=int, metavar="INT")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -95,6 +85,17 @@ def parse_args(args):
         action="store_const",
         const=logging.DEBUG,
     )
+    
+    subparsers = parser.add_subparsers(
+        title="Management command",
+        description="Many commands are added to help you in maintenance and management."
+    )
+    
+    config_cli.parse_args(subparsers)
+    relay_cli.parse_args(subparsers)
+    staking_cli.parse_args(subparsers)
+    wallet_cli.parse_args(subparsers)
+    
     return parser.parse_args(args)
 
 
